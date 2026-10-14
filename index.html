@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الشهادات - دولاب أكاديمي | Dolab Academy</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1a1a24; color: #ffffff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; }
+        .container { max-width: 550px; width: 100%; background: #232330; padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border-top: 5px solid #f39c12; text-align: center; box-sizing: border-box; }
+        .logo-text { font-size: 32px; font-weight: 800; color: #f39c12; letter-spacing: 1px; margin-bottom: 5px; }
+        .academy-loc { font-size: 14px; color: #9aa0a6; margin-bottom: 30px; }
+        input { width: 100%; padding: 14px; margin: 12px 0; border: 2px solid #3a3a4f; background: #14141c; color: white; border-radius: 8px; font-size: 16px; text-align: center; box-sizing: border-box; }
+        input:focus { border-color: #f39c12; outline: none; }
+        button { background-color: #f39c12; color: #14141c; padding: 14px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; font-weight: bold; margin-top: 15px; }
+        .result-box { display: none; margin-top: 30px; text-align: right; background: #1c1c27; padding: 25px; border-radius: 10px; border: 1px solid #27ae60; }
+        .result-box h3 { color: #27ae60; margin-top: 0; font-size: 20px; border-bottom: 1px solid #2d2d3f; padding-bottom: 10px; }
+        .result-box p { margin: 12px 0; font-size: 15px; color: #cbd5e1; display: flex; justify-content: space-between; }
+        .download-btn { display: block; text-decoration: none; background-color: #27ae60; color: white; padding: 15px 20px; border-radius: 8px; font-size: 16px; text-align: center; margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-text">DOLAB ACADEMY</div>
+    <div class="academy-loc">دولاب أكاديمي - جليم، الإسكندرية 🌊</div>
+    
+    <p>برجاء إدخال اسمك وكودك المعتمد لاستخراج شهادتك وبيانات الدورة.</p>
+    
+    <input type="text" id="studentName" placeholder="أدخل اسمك ثلاثي أو رباعي">
+    <input type="text" id="studentCode" placeholder="أدخل كود الطالب (مثال: 3026B)">
+    <button onclick="searchStudent()">استعلام وعرض الشهادة</button>
+
+    <div id="resultBox" class="result-box">
+        <h3>✅ تم العثور على بياناتك وشهادتك المعتمدة:</h3>
+        <p><strong>اسم الطـالب:</strong> <span id="resName"></span></p>
+        <p><strong>الدورة التدريبية:</strong> <span id="resCourse"></span></p>
+        <p><strong>تاريخ التسجيل:</strong> <span id="resDate"></span></p>
+        <p><strong>ساعات الحضور:</strong> <span id="resHours"></span></p>
+        <p><strong>المحاضر المسؤول:</strong> <span id="resInstructor"></span></p>
+        <p><strong>الدرجة / التقدير:</strong> <span id="resGrade"></span></p>
+        
+        <a id="downloadLink" href="#" target="_blank" class="download-btn">⬇️ تحميل الشهادة الرسمية المختومة (PDF)</a>
+    </div>
+</div>
+
+<script>
+    // ⚠️ الموظف يضع الرابطين دول مرة واحدة في العمر هنا والموقع يشتغل للأبد:
+    const sheetUrl = 'رابط_شيت_جوجل_الـ_CSV_هنا'; 
+    const googleDriveFolderUrl = 'رابط_فولدر_جوجل_درايف_المشترك_هنا'; 
+
+    async function searchStudent() {
+        const nameInput = document.getElementById('studentName').value.trim().toLowerCase();
+        const codeInput = document.getElementById('studentCode').value.trim().toLowerCase();
+        
+        if(!nameInput || !codeInput) { alert('برجاء إدخال الاسم والكود معاً.'); return; }
+
+        try {
+            const response = await fetch(sheetUrl);
+            const data = await response.text();
+            const rows = data.split('\n').map(row => row.split(','));
+            let student = null;
+            
+            for(let i = 1; i < rows.length; i++) {
+                if(rows[i] && rows[i]) {
+                    if(rows[i].trim().toLowerCase() === codeInput && rows[i].trim().toLowerCase() === nameInput) {
+                        student = {
+                            code: rows[i].trim(),
+                            name: rows[i].trim(),
+                            course: rows[i]?.trim() || 'غير محدد',
+                            date: rows[i]?.trim() || 'غير محدد',
+                            hours: rows[i]?.trim() || '0',
+                            instructor: rows[i]?.trim() || 'غير محدد',
+                            grade: rows[i]?.trim() || 'غير محدد'
+                        };
+                        break;
+                    }
+                }
+            }
+
+            if(student) {
+                document.getElementById('resName').innerText = student.name;
+                document.getElementById('resCourse').innerText = student.course;
+                document.getElementById('resDate').innerText = student.date;
+                document.getElementById('resHours').innerText = student.hours + " ساعة";
+                document.getElementById('resInstructor').innerText = student.instructor;
+                document.getElementById('resGrade').innerText = student.grade;
+                
+                // تحويل الطالب مباشرة للشهادة المرفوعة في جوجل درايف باسم الكود الخاص به
+                const pdfName = student.code.toLowerCase() + ".pdf";
+                document.getElementById('downloadLink').href = `${googleDriveFolderUrl}/${pdfName}`;
+
+                document.getElementById('resultBox').style.display = 'block';
+            } else {
+                alert('عذراً، لم يتم العثور على بيانات متطابقة.');
+                document.getElementById('resultBox').style.display = 'none';
+            }
+        } catch (error) {
+            alert('حدث خطأ في جلب البيانات.');
+        }
+    }
+</script>
+</body>
+</html>
